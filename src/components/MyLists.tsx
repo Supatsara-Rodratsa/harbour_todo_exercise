@@ -1,15 +1,15 @@
 'use client';
 
-import Link from 'next/link';
+// import Link from 'next/link';
 import classNames from 'classnames';
 import { CreateList } from '@/components/CreateList';
 import { Close } from '@/components/icons/Close';
 import { randomColor } from '@/utils/randomColor';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { client } from '@/lib/client';
 import { DELETE_TODO_LIST_MUTATION } from '@/constants/gql';
 import { Edit } from './icons/Edit';
-import { Reorder, useDragControls } from 'framer-motion';
+import { Reorder, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Drag } from './icons/Drag';
 
@@ -26,9 +26,26 @@ type MyListsProps = {
 
 export const MyLists = ({ list = [] }: MyListsProps) => {
   const router = useRouter();
-  const controls = useDragControls();
   const [todoLists, setTodoLists] = useState<TodoList[]>(list);
   const [showButton, setShowButton] = useState<boolean>(false);
+  const [rotation, setRotation] = useState<number[]>();
+
+  useEffect(() => {
+    if (todoLists.length == 0) {
+      setShowButton(false);
+    }
+    if (showButton) {
+      const interval = setInterval(() => {
+        const random: number[] = [];
+        todoLists.forEach(() => {
+          const randomRotation = Math.floor(Math.random() * 50) - 10;
+          random.push(randomRotation);
+        });
+        setRotation([...random]);
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [todoLists, showButton]);
 
   const onCreateHandler = (newTodoList: TodoList) => {
     setTodoLists([...todoLists, newTodoList]);
@@ -55,7 +72,7 @@ export const MyLists = ({ list = [] }: MyListsProps) => {
   return (
     <div className="flex flex-col gap-8 text-center">
       <div className="flex gap-2 w-full justify-center items-center">
-        <h1 className="text-4xl">
+        <h1 className="text-4xl text-blue-300">
           {todoLists.length > 0 ? 'My TODO lists' : 'No lists yet!'}
         </h1>
         {todoLists.length > 0 && (
@@ -68,15 +85,29 @@ export const MyLists = ({ list = [] }: MyListsProps) => {
         )}
       </div>
       <Reorder.Group values={todoLists} onReorder={setTodoLists}>
-        {todoLists.map((item) => (
+        {todoLists.map((item, i) => (
           <Reorder.Item
             key={item.id}
-            dragListener={false}
-            dragControls={controls}
+            initial={{ x: 50 }}
+            animate={{
+              x: 0,
+            }}
+            exit={{
+              x: 0,
+            }}
+            transition={{ duration: 1 }}
             value={item}
             className="flex w-full gap-4 items-center"
           >
-            <div
+            <motion.div
+              animate={{
+                rotate: [0, (showButton && rotation?.at(i)) || 0, 0, 0],
+              }}
+              transition={{
+                duration: Math.random() * 0.07 + 0.23,
+                repeat: Infinity,
+                repeatType: 'reverse',
+              }}
               className={classNames(
                 'w-full bg-gray-900 pr-2 rounded-lg mb-4 flex justify-between items-center text-black hover:scale-[1.02] transform transition duration-300 ease-in-out',
                 randomColor(),
@@ -89,13 +120,10 @@ export const MyLists = ({ list = [] }: MyListsProps) => {
                 {item.name}
               </div>
 
-              <div
-                className="cursor-grab"
-                onPointerDown={(e) => controls.start(e)}
-              >
+              <div className="cursor-grab">
                 <Drag />
               </div>
-            </div>
+            </motion.div>
 
             {showButton && (
               <button

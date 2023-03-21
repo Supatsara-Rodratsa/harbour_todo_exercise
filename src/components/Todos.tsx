@@ -10,6 +10,7 @@ import {
   FINISH_TODO_MUTATION,
   REMOVE_TODO_MUTATION,
 } from '@/constants/gql';
+import { Reorder } from 'framer-motion';
 
 export type Todo = {
   id: number;
@@ -76,12 +77,13 @@ export const Todos = ({ list = [], listId }: TodosProps) => {
 
   return (
     <div>
-      <h2 className="text-center text-5xl mb-10">My TODO list</h2>
-      <ul>
+      <h2 className="text-center text-5xl mb-10 text-blue-300">My TODO list</h2>
+      <Reorder.Group values={todos} onReorder={setTodos}>
         {todos.map((item) => (
-          <li
+          <Reorder.Item
+            value={item}
             key={item.id}
-            className="py-2 pl-4 pr-2 bg-gray-900 rounded-lg mb-4 flex justify-between items-center min-h-16"
+            className="py-2 pl-4 pr-2 bg-gray-900 text-white rounded-lg mb-4 flex justify-between items-center min-h-16 cursor-grab"
           >
             <p className={item.finished ? 'line-through' : ''}>{item.desc}</p>
             {!item.finished && (
@@ -100,9 +102,9 @@ export const Todos = ({ list = [], listId }: TodosProps) => {
                 </button>
               </div>
             )}
-          </li>
+          </Reorder.Item>
         ))}
-      </ul>
+      </Reorder.Group>
       <AddTodo onAdd={onAddHandler} />
     </div>
   );

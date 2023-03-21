@@ -43,7 +43,7 @@ export const CreateList = ({ onCreate }: CreateListProps) => {
 
   return (
     <div className="w-full text-center">
-      <h2 className="text-3xl mb-8">Create new List</h2>
+      <h2 className="text-3xl mb-8 text-blue-300">Create new List</h2>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <input
           type="text"
