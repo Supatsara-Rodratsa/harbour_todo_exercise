@@ -1,14 +1,21 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { Heart } from '@/components/icons/Heart';
 import { Close } from '@/components/icons/Close';
 import { AddTodo } from '@/components/AddTodo';
+import { client } from '@/lib/client';
+import {
+  ADD_TODO_MUTATION,
+  FINISH_TODO_MUTATION,
+  REMOVE_TODO_MUTATION,
+} from '@/constants/gql';
 
 export type Todo = {
   id: number;
   desc: string;
   finished: boolean;
+  todo_list_id: number;
 };
 
 type TodosProps = {
@@ -19,16 +26,52 @@ type TodosProps = {
 export const Todos = ({ list = [], listId }: TodosProps) => {
   const [todos, setTodos] = useState<Todo[]>(list);
 
-  const onAddHandler = (desc: string) => {
-    console.log(`Add todo ${desc}`);
+  const onAddHandler = async (desc: string) => {
+    const { addTODO } = await client('AddTODO').request<{
+      addTODO: Todo;
+    }>(ADD_TODO_MUTATION, {
+      listId: listId,
+      desc: desc,
+    });
+
+    if (addTODO) {
+      todos.push(addTODO);
+      setTodos([...todos]);
+    }
   };
 
-  const onRemoveHandler = (id: number) => {
-    console.log(`Remove todo ${id}`);
+  const onRemoveHandler = async (id: number) => {
+    const { removeTODO } = await client('RemoveTODO').request<{
+      removeTODO: boolean;
+    }>(REMOVE_TODO_MUTATION, {
+      removeTodoId: id,
+      listId: listId,
+    });
+
+    if (removeTODO) {
+      const index = todos.findIndex((todo: Todo) => todo.id === id);
+      if (index !== -1) {
+        todos.splice(index, 1);
+        setTodos([...todos]);
+      }
+    }
   };
 
-  const onFinishHandler = (id: number) => {
-    console.log(`Mark todo ${id} as finished`);
+  const onFinishHandler = async (id: number) => {
+    const { finishTODO } = await client('FinishTODO').request<{
+      finishTODO: Todo;
+    }>(FINISH_TODO_MUTATION, {
+      finishTodoId: id,
+      listId: listId,
+    });
+
+    if (finishTODO) {
+      const index = todos.findIndex((todo: Todo) => todo.id === id);
+      if (index !== -1) {
+        todos.splice(index, 1);
+        setTodos([...todos, finishTODO]);
+      }
+    }
   };
 
   return (

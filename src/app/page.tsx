@@ -1,19 +1,12 @@
 import { MyLists, TodoList } from '@/components/MyLists';
-import { gql } from 'graphql-request';
 import { client } from '@/lib/client';
 import { MY_EMAIL_KEY } from '../constants/email';
-
-const GET_TODO_LISTS_QUERY = gql`
-  query GetTODOLists($email: String!) {
-    getTODOLists(email: $email) {
-      id
-      name
-    }
-  }
-`;
+import { GET_TODO_LISTS_QUERY } from '@/constants/gql';
 
 export default async function Home() {
-  const { getTODOLists } = await client.request<{ getTODOLists: TodoList[] }>(GET_TODO_LISTS_QUERY, {
+  const { getTODOLists } = await client('getTODOLists').request<{
+    getTODOLists: TodoList[];
+  }>(GET_TODO_LISTS_QUERY, {
     email: MY_EMAIL_KEY,
   });
 
